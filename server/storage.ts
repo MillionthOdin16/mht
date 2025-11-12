@@ -12,6 +12,7 @@ import {
   type CompleteEntry,
 } from "@shared/schema";
 import { randomUUID } from "crypto";
+import { format } from "date-fns";
 
 export interface IStorage {
   getDailyEntry(id: string): Promise<DailyEntry | undefined>;
@@ -69,6 +70,98 @@ export class MemStorage implements IStorage {
         name,
         isActive: 1,
         createdAt: new Date(),
+      });
+    });
+    
+    // Initialize sample data for demo purposes
+    this.initializeSampleData();
+  }
+
+  private initializeSampleData() {
+    const today = new Date();
+    const sampleEntries = [
+      {
+        date: format(new Date(today.getTime() - 6 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd'),
+        mood: 3,
+        energy: 4,
+        sleepHours: 5.5,
+        sleepQuality: 3,
+        medications: ["Bupropion 300mg", "Venlafaxine 225mg"],
+        siTracking: { present: true, intensity: 4, thoughts: "Felt worthless again today" },
+        diary: "Struggled to get out of bed. Work felt overwhelming. Thoughts were dark.",
+      },
+      {
+        date: format(new Date(today.getTime() - 5 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd'),
+        mood: 4,
+        energy: 5,
+        sleepHours: 6,
+        sleepQuality: 4,
+        medications: ["Bupropion 300mg", "Venlafaxine 225mg", "Adderall 30mg XR"],
+        siTracking: { present: false },
+        diary: "Slightly better day. Medication compliance improved. Had a good conversation with a friend.",
+      },
+      {
+        date: format(new Date(today.getTime() - 4 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd'),
+        mood: 5,
+        energy: 6,
+        sleepHours: 7,
+        sleepQuality: 5,
+        medications: ["Bupropion 300mg", "Venlafaxine 225mg", "Adderall 30mg XR"],
+        siTracking: { present: false },
+        diary: "Mood is stabilizing. Exercise helped today. Finished some work tasks.",
+      },
+      {
+        date: format(new Date(today.getTime() - 3 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd'),
+        mood: 6,
+        energy: 7,
+        sleepHours: 7.5,
+        sleepQuality: 6,
+        medications: ["Bupropion 300mg", "Venlafaxine 225mg", "Adderall 30mg XR"],
+        siTracking: { present: false },
+        diary: "Good day overall. Productive at work. Social interaction felt natural.",
+      },
+      {
+        date: format(new Date(today.getTime() - 2 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd'),
+        mood: 7,
+        energy: 7,
+        sleepHours: 8,
+        sleepQuality: 7,
+        medications: ["Bupropion 300mg", "Venlafaxine 225mg", "Adderall 30mg XR"],
+        siTracking: { present: false },
+        diary: "Best day this week. Feeling hopeful. Engaged in hobbies.",
+      },
+      {
+        date: format(new Date(today.getTime() - 1 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd'),
+        mood: 5,
+        energy: 6,
+        sleepHours: 7,
+        sleepQuality: 6,
+        medications: ["Bupropion 300mg", "Venlafaxine 225mg"],
+        siTracking: { present: false },
+        diary: "Moderate day. Some anxiety about upcoming week but manageable.",
+      },
+      {
+        date: format(today, 'yyyy-MM-dd'),
+        mood: 6,
+        energy: 6,
+        sleepHours: 7,
+        sleepQuality: 6,
+        medications: ["Bupropion 300mg", "Venlafaxine 225mg", "Adderall 30mg XR"],
+        siTracking: { present: false },
+        diary: "Started tracking consistently. Noticing patterns in my mood.",
+      },
+    ];
+
+    sampleEntries.forEach((entry) => {
+      const id = randomUUID();
+      const now = new Date();
+      this.dailyEntries.set(id, {
+        ...entry,
+        id,
+        medications: entry.medications as string[],
+        siTracking: entry.siTracking as { present: boolean; intensity?: number; thoughts?: string },
+        createdAt: now,
+        updatedAt: now,
       });
     });
   }
