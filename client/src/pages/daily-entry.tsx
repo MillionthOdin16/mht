@@ -40,28 +40,50 @@ export default function DailyEntry() {
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      date: new Date(),
-      mood: 5,
-      energy: 5,
-      sleepHours: 7,
-      sleepQuality: 5,
-      medications: [],
-      siTracking: {
-        present: false,
-      },
-      diary: "",
+    defaultValues: () => {
+      // Try to load draft from localStorage
+      const draft = localStorage.getItem('mindtrack-draft-entry');
+      if (draft) {
+        try {
+          const parsed = JSON.parse(draft);
+          return {
+            ...parsed,
+            date: new Date(parsed.date),
+          };
+        } catch {
+          // If parse fails, use defaults
+        }
+      }
+      return {
+        date: new Date(),
+        mood: 5,
+        energy: 5,
+        sleepHours: 7,
+        sleepQuality: 5,
+        medications: [],
+        siTracking: {
+          present: false,
+        },
+        diary: "",
+      };
     },
   });
 
   const diary = form.watch("diary");
+  const allValues = form.watch();
   
+  // Auto-save draft to localStorage every 5 seconds when diary changes
   useEffect(() => {
     const timer = setTimeout(() => {
+      const draft = {
+        ...allValues,
+        date: format(allValues.date, "yyyy-MM-dd"),
+      };
+      localStorage.setItem('mindtrack-draft-entry', JSON.stringify(draft));
       setLastSaved(new Date());
-    }, 1000);
+    }, 5000);
     return () => clearTimeout(timer);
-  }, [diary]);
+  }, [diary, allValues]);
 
   const createEntryMutation = useMutation({
     mutationFn: async (data: z.infer<typeof formSchema>) => {
@@ -73,6 +95,8 @@ export default function DailyEntry() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/entries"] });
       setLastSaved(new Date());
+      // Clear draft after successful save
+      localStorage.removeItem('mindtrack-draft-entry');
       toast({
         title: "Entry Saved",
         description: "Your daily entry has been saved successfully.",
