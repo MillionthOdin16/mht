@@ -9,7 +9,8 @@ export const dailyEntries = pgTable("daily_entries", {
   date: date("date").notNull(),
   mood: integer("mood").notNull(), // 1-10 scale
   energy: integer("energy").notNull(), // 1-10 scale
-  sleep: integer("sleep").notNull(), // 1-10 scale
+  sleepHours: integer("sleep_hours").notNull().default(7), // 0-24 hours
+  sleepQuality: integer("sleep_quality").notNull().default(5), // 1-10 scale
   medications: jsonb("medications").$type<string[]>().notNull().default(sql`'[]'`), // Array of medication names
   siTracking: jsonb("si_tracking").$type<{
     present: boolean;

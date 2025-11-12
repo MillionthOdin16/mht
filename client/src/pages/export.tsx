@@ -21,7 +21,8 @@ export default function Export() {
   const [includeFields, setIncludeFields] = useState({
     mood: true,
     energy: true,
-    sleep: true,
+    sleepHours: true,
+    sleepQuality: true,
     medications: true,
     siTracking: false,
     diary: true,
@@ -99,7 +100,8 @@ export default function Export() {
   const dataFields = [
     { key: "mood", label: "Mood ratings" },
     { key: "energy", label: "Energy ratings" },
-    { key: "sleep", label: "Sleep quality ratings" },
+    { key: "sleepHours", label: "Sleep hours" },
+    { key: "sleepQuality", label: "Sleep quality ratings" },
     { key: "medications", label: "Medication logs" },
     { key: "siTracking", label: "Suicidal ideation tracking" },
     { key: "diary", label: "Diary entries" },

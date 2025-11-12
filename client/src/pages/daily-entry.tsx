@@ -44,7 +44,8 @@ export default function DailyEntry() {
       date: new Date(),
       mood: 5,
       energy: 5,
-      sleep: 5,
+      sleepHours: 7,
+      sleepQuality: 5,
       medications: [],
       siTracking: {
         present: false,
@@ -133,7 +134,7 @@ export default function DailyEntry() {
           <Card>
             <CardHeader>
               <CardTitle>Core Metrics</CardTitle>
-              <CardDescription>Rate your mood, energy, and sleep quality (1-10)</CardDescription>
+              <CardDescription>Rate your mood, energy, and sleep (1-10 scale, sleep hours 0-24)</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <FormField
@@ -198,13 +199,43 @@ export default function DailyEntry() {
 
               <FormField
                 control={form.control}
-                name="sleep"
+                name="sleepHours"
+                render={({ field }) => (
+                  <FormItem>
+                    <div className="flex items-center justify-between">
+                      <FormLabel className="text-base font-medium">Sleep Hours</FormLabel>
+                      <Badge variant="secondary" className="min-w-12 justify-center" data-testid="text-sleep-hours-value">
+                        {field.value ?? 7}h
+                      </Badge>
+                    </div>
+                    <FormControl>
+                      <Slider
+                        min={0}
+                        max={24}
+                        step={0.5}
+                        value={[field.value ?? 7]}
+                        onValueChange={(vals) => field.onChange(vals[0])}
+                        className="min-h-12"
+                        data-testid="slider-sleep-hours"
+                      />
+                    </FormControl>
+                    <div className="flex justify-between text-xs text-muted-foreground">
+                      <span>0h</span>
+                      <span>24h</span>
+                    </div>
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="sleepQuality"
                 render={({ field }) => (
                   <FormItem>
                     <div className="flex items-center justify-between">
                       <FormLabel className="text-base font-medium">Sleep Quality</FormLabel>
-                      <Badge variant="secondary" className="min-w-12 justify-center" data-testid="text-sleep-value">
-                        {field.value}
+                      <Badge variant="secondary" className="min-w-12 justify-center" data-testid="text-sleep-quality-value">
+                        {field.value ?? 5}
                       </Badge>
                     </div>
                     <FormControl>
@@ -212,10 +243,10 @@ export default function DailyEntry() {
                         min={1}
                         max={10}
                         step={1}
-                        value={[field.value]}
+                        value={[field.value ?? 5]}
                         onValueChange={(vals) => field.onChange(vals[0])}
                         className="min-h-12"
-                        data-testid="slider-sleep"
+                        data-testid="slider-sleep-quality"
                       />
                     </FormControl>
                     <div className="flex justify-between text-xs text-muted-foreground">

@@ -57,7 +57,11 @@ export class MemStorage implements IStorage {
   }
 
   private initializeMockMedications() {
-    const mockMeds = ["Medication A", "Medication B", "Medication C"];
+    const mockMeds = [
+      "Bupropion 300mg",
+      "Venlafaxine 225mg",
+      "Adderall 30mg XR"
+    ];
     mockMeds.forEach((name) => {
       const id = randomUUID();
       this.medications.set(id, {
@@ -127,6 +131,8 @@ export class MemStorage implements IStorage {
     const entry: DailyEntry = {
       ...insertEntry,
       id,
+      sleepHours: insertEntry.sleepHours ?? 7,
+      sleepQuality: insertEntry.sleepQuality ?? 5,
       medications: (insertEntry.medications || []) as string[],
       siTracking: (insertEntry.siTracking || { present: false }) as {
         present: boolean;

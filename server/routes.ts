@@ -286,7 +286,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         if (includeFields.mood) filtered.mood = entry.mood;
         if (includeFields.energy) filtered.energy = entry.energy;
-        if (includeFields.sleep) filtered.sleep = entry.sleep;
+        if (includeFields.sleepHours) filtered.sleepHours = entry.sleepHours;
+        if (includeFields.sleepQuality) filtered.sleepQuality = entry.sleepQuality;
         if (includeFields.medications) filtered.medications = entry.medications;
         if (includeFields.siTracking) filtered.siTracking = entry.siTracking;
         if (includeFields.diary) filtered.diary = entry.diary;

@@ -22,7 +22,8 @@ export default function Analytics() {
     date: format(new Date(entry.date), "MM/dd"),
     mood: entry.mood,
     energy: entry.energy,
-    sleep: entry.sleep,
+    sleepHours: entry.sleepHours,
+    sleepQuality: entry.sleepQuality,
   }));
 
   const mockData = chartData.length > 0 ? chartData : eachDayOfInterval({
@@ -32,17 +33,20 @@ export default function Analytics() {
     date: format(date, "MM/dd"),
     mood: Math.floor(Math.random() * 5) + 4 + Math.sin(i / 5) * 2,
     energy: Math.floor(Math.random() * 5) + 4 + Math.cos(i / 4) * 2,
-    sleep: Math.floor(Math.random() * 5) + 4 + Math.sin(i / 6) * 2,
+    sleepHours: Math.floor(Math.random() * 4) + 6 + Math.sin(i / 6),
+    sleepQuality: Math.floor(Math.random() * 5) + 4 + Math.sin(i / 6) * 2,
   }));
 
   const correlationData = mockData.map((d) => ({
     mood: d.mood,
-    sleep: d.sleep,
+    sleepHours: d.sleepHours,
+    sleepQuality: d.sleepQuality,
   }));
 
   const avgMood = mockData.reduce((sum, d) => sum + d.mood, 0) / mockData.length;
   const avgEnergy = mockData.reduce((sum, d) => sum + d.energy, 0) / mockData.length;
-  const avgSleep = mockData.reduce((sum, d) => sum + d.sleep, 0) / mockData.length;
+  const avgSleepHours = mockData.reduce((sum, d) => sum + d.sleepHours, 0) / mockData.length;
+  const avgSleepQuality = mockData.reduce((sum, d) => sum + d.sleepQuality, 0) / mockData.length;
 
   const moodTrend = mockData[mockData.length - 1].mood - mockData[0].mood;
   const energyTrend = mockData[mockData.length - 1].energy - mockData[0].energy;
@@ -151,7 +155,10 @@ export default function Analytics() {
             <CardTitle className="text-base font-medium">Avg Sleep</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-semibold" data-testid="text-avg-sleep">{avgSleep.toFixed(1)}</div>
+            <div className="space-y-2">
+              <div className="text-3xl font-semibold" data-testid="text-avg-sleep">{avgSleepHours.toFixed(1)}h</div>
+              <div className="text-sm text-muted-foreground">Quality: {avgSleepQuality.toFixed(1)}/10</div>
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -201,11 +208,11 @@ export default function Analytics() {
               />
               <Line 
                 type="monotone" 
-                dataKey="sleep" 
+                dataKey="sleepQuality" 
                 stroke="hsl(var(--chart-3))" 
                 strokeWidth={2}
                 dot={{ r: 3 }}
-                name="Sleep"
+                name="Sleep Quality"
               />
             </LineChart>
           </ResponsiveContainer>
@@ -215,7 +222,7 @@ export default function Analytics() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>Mood vs Sleep Correlation</CardTitle>
+            <CardTitle>Mood vs Sleep Hours Correlation</CardTitle>
             <CardDescription>Explore relationship between metrics</CardDescription>
           </CardHeader>
           <CardContent>
@@ -223,12 +230,12 @@ export default function Analytics() {
               <ScatterChart>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                 <XAxis 
-                  dataKey="sleep" 
-                  name="Sleep" 
-                  domain={[0, 10]}
+                  dataKey="sleepHours" 
+                  name="Sleep Hours" 
+                  domain={[0, 12]}
                   stroke="hsl(var(--muted-foreground))"
                   style={{ fontSize: '12px' }}
-                  label={{ value: 'Sleep Quality', position: 'bottom', fill: 'hsl(var(--muted-foreground))' }}
+                  label={{ value: 'Sleep Hours', position: 'bottom', fill: 'hsl(var(--muted-foreground))' }}
                 />
                 <YAxis 
                   dataKey="mood" 

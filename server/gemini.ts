@@ -22,7 +22,8 @@ export async function generateClinicalSummary(
     date: entry.date,
     mood: entry.mood,
     energy: entry.energy,
-    sleep: entry.sleep,
+    sleepHours: entry.sleepHours,
+    sleepQuality: entry.sleepQuality,
     medications: entry.medications,
     siTracking: entry.siTracking,
     diary: entry.diary?.substring(0, 200),
@@ -33,7 +34,8 @@ export async function generateClinicalSummary(
 
   const avgMood = entries.reduce((sum, e) => sum + e.mood, 0) / entries.length;
   const avgEnergy = entries.reduce((sum, e) => sum + e.energy, 0) / entries.length;
-  const avgSleep = entries.reduce((sum, e) => sum + e.sleep, 0) / entries.length;
+  const avgSleepHours = entries.reduce((sum, e) => sum + e.sleepHours, 0) / entries.length;
+  const avgSleepQuality = entries.reduce((sum, e) => sum + e.sleepQuality, 0) / entries.length;
 
   const medicationDays = entries.filter(e => e.medications && e.medications.length > 0).length;
   const adherenceRate = (medicationDays / entries.length) * 100;
@@ -48,7 +50,8 @@ export async function generateClinicalSummary(
 **Aggregated Metrics:**
 - Average Mood: ${avgMood.toFixed(1)}/10
 - Average Energy: ${avgEnergy.toFixed(1)}/10
-- Average Sleep Quality: ${avgSleep.toFixed(1)}/10
+- Average Sleep Hours: ${avgSleepHours.toFixed(1)} hours
+- Average Sleep Quality: ${avgSleepQuality.toFixed(1)}/10
 - Medication Adherence: ${adherenceRate.toFixed(0)}%
 - Suicidal Ideation Present: ${siPresent ? "Yes" : "No"}
 
