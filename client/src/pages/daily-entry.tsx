@@ -20,12 +20,43 @@ import { Separator } from "@/components/ui/separator";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { MedicationManager } from "@/components/medication-manager";
+import { TagInput } from "@/components/tag-input";
+import { QuickEntry } from "@/components/quick-entry";
 import { insertDailyEntrySchema, type InsertDailyEntry } from "@shared/schema";
 import { cn } from "@/lib/utils";
 
 const formSchema = insertDailyEntrySchema.extend({
   date: z.date(),
 });
+
+// Common mental health-related tag suggestions
+const TAG_SUGGESTIONS = [
+  "anxiety",
+  "depression",
+  "stress",
+  "productive",
+  "therapy",
+  "exercise",
+  "work",
+  "social",
+  "family",
+  "relaxation",
+  "meditation",
+  "insomnia",
+  "fatigue",
+  "overwhelmed",
+  "hopeful",
+  "angry",
+  "lonely",
+  "motivated",
+  "exhausted",
+  "peaceful",
+  "panic",
+  "restless",
+  "focused",
+  "scattered",
+  "irritable",
+];
 
 export default function DailyEntry() {
   const { toast } = useToast();
@@ -72,6 +103,7 @@ export default function DailyEntry() {
       present: false,
     },
     diary: "",
+    tags: [],
   };
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -144,14 +176,16 @@ export default function DailyEntry() {
           <h1 className="text-2xl sm:text-3xl font-semibold text-foreground">Daily Entry</h1>
           <p className="text-sm text-muted-foreground mt-1">Track your mental health data</p>
         </div>
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button variant="outline" data-testid="button-date-picker" className="gap-2">
-              <CalendarIcon className="h-4 w-4" />
-              <span className="hidden sm:inline">{form.watch("date") ? format(form.watch("date"), "PPP") : "Select date"}</span>
-              <span className="sm:hidden">{form.watch("date") ? format(form.watch("date"), "PP") : "Date"}</span>
-            </Button>
-          </PopoverTrigger>
+        <div className="flex items-center gap-2">
+          <QuickEntry />
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" data-testid="button-date-picker" className="gap-2">
+                <CalendarIcon className="h-4 w-4" />
+                <span className="hidden sm:inline">{form.watch("date") ? format(form.watch("date"), "PPP") : "Select date"}</span>
+                <span className="sm:hidden">{form.watch("date") ? format(form.watch("date"), "PP") : "Date"}</span>
+              </Button>
+            </PopoverTrigger>
           <PopoverContent className="w-auto p-0">
             <Calendar
               mode="single"
@@ -162,6 +196,7 @@ export default function DailyEntry() {
             />
           </PopoverContent>
         </Popover>
+        </div>
       </div>
 
       <Form {...form}>
@@ -507,6 +542,31 @@ export default function DailyEntry() {
                         {field.value?.length || 0} characters
                       </p>
                     </div>
+                  </FormItem>
+                )}
+              />
+              
+              <Separator className="my-4" />
+              
+              <FormField
+                control={form.control}
+                name="tags"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-base font-medium">Tags</FormLabel>
+                    <p className="text-sm text-muted-foreground mb-2">
+                      Add tags to categorize and search your entries easily
+                    </p>
+                    <FormControl>
+                      <TagInput
+                        tags={field.value || []}
+                        onChange={field.onChange}
+                        placeholder="Type and press Enter..."
+                        suggestions={TAG_SUGGESTIONS}
+                        maxTags={8}
+                      />
+                    </FormControl>
+                    <FormMessage />
                   </FormItem>
                 )}
               />

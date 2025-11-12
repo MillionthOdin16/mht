@@ -18,6 +18,7 @@ export const dailyEntries = pgTable("daily_entries", {
     thoughts?: string;
   }>().notNull().default(sql`'{"present":false}'`),
   diary: text("diary").notNull().default(""),
+  tags: jsonb("tags").$type<string[]>().notNull().default(sql`'[]'`), // Tags for categorization
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

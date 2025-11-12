@@ -1,13 +1,14 @@
 import { useState } from "react";
 import { format, subDays } from "date-fns";
 import { useMutation } from "@tanstack/react-query";
-import { Download, FileJson, FileSpreadsheet, Calendar as CalendarIcon } from "lucide-react";
+import { Download, FileJson, FileSpreadsheet, Calendar as CalendarIcon, Tag } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
@@ -26,10 +27,12 @@ export default function Export() {
     medications: true,
     siTracking: false,
     diary: true,
+    tags: true,
     socialInteractions: true,
     activities: true,
     triggers: true,
   });
+  const [filterTags, setFilterTags] = useState<string>("");
 
   const exportMutation = useMutation({
     mutationFn: async () => {
@@ -105,6 +108,7 @@ export default function Export() {
     { key: "medications", label: "Medication logs" },
     { key: "siTracking", label: "Suicidal ideation tracking" },
     { key: "diary", label: "Diary entries" },
+    { key: "tags", label: "Tags" },
     { key: "socialInteractions", label: "Social interactions" },
     { key: "activities", label: "Activities" },
     { key: "triggers", label: "Triggers" },
@@ -217,6 +221,30 @@ export default function Export() {
                 </PopoverContent>
               </Popover>
             </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Tag className="h-5 w-5" />
+            Filter by Tags
+          </CardTitle>
+          <CardDescription>Only export entries with specific tags (optional)</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2">
+            <Label htmlFor="tag-filter">Tags (comma-separated)</Label>
+            <Input
+              id="tag-filter"
+              placeholder="e.g., anxiety, therapy, work"
+              value={filterTags}
+              onChange={(e) => setFilterTags(e.target.value)}
+            />
+            <p className="text-xs text-muted-foreground">
+              Leave blank to export all entries, or enter tags to filter
+            </p>
           </div>
         </CardContent>
       </Card>
