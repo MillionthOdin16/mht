@@ -38,35 +38,44 @@ export default function DailyEntry() {
     queryKey: ["/api/medications"],
   });
 
+  // Try to load draft from localStorage
+  const loadDraft = () => {
+    const draft = localStorage.getItem('mindtrack-draft-entry');
+    if (draft) {
+      try {
+        const parsed = JSON.parse(draft);
+        // Parse the date string back to Date object
+        if (parsed.date) {
+          parsed.date = new Date(parsed.date);
+          // Check if date is valid
+          if (isNaN(parsed.date.getTime())) {
+            parsed.date = new Date();
+          }
+        }
+        return parsed;
+      } catch {
+        // If parse fails, return null
+      }
+    }
+    return null;
+  };
+
+  const defaultValues = loadDraft() || {
+    date: new Date(),
+    mood: 5,
+    energy: 5,
+    sleepHours: 7,
+    sleepQuality: 5,
+    medications: [],
+    siTracking: {
+      present: false,
+    },
+    diary: "",
+  };
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: () => {
-      // Try to load draft from localStorage
-      const draft = localStorage.getItem('mindtrack-draft-entry');
-      if (draft) {
-        try {
-          const parsed = JSON.parse(draft);
-          return {
-            ...parsed,
-            date: new Date(parsed.date),
-          };
-        } catch {
-          // If parse fails, use defaults
-        }
-      }
-      return {
-        date: new Date(),
-        mood: 5,
-        energy: 5,
-        sleepHours: 7,
-        sleepQuality: 5,
-        medications: [],
-        siTracking: {
-          present: false,
-        },
-        diary: "",
-      };
-    },
+    defaultValues,
   });
 
   const diary = form.watch("diary");
@@ -138,8 +147,8 @@ export default function DailyEntry() {
           <PopoverTrigger asChild>
             <Button variant="outline" data-testid="button-date-picker" className="gap-2">
               <CalendarIcon className="h-4 w-4" />
-              <span className="hidden sm:inline">{format(form.watch("date"), "PPP")}</span>
-              <span className="sm:hidden">{format(form.watch("date"), "PP")}</span>
+              <span className="hidden sm:inline">{form.watch("date") ? format(form.watch("date"), "PPP") : "Select date"}</span>
+              <span className="sm:hidden">{form.watch("date") ? format(form.watch("date"), "PP") : "Date"}</span>
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0">
