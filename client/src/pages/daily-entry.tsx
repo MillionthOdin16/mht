@@ -559,7 +559,7 @@ export default function DailyEntry() {
                     </p>
                     <FormControl>
                       <TagInput
-                        tags={field.value || []}
+                        tags={field.value ? [...field.value] : []}
                         onChange={field.onChange}
                         placeholder="Type and press Enter..."
                         suggestions={TAG_SUGGESTIONS}
