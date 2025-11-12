@@ -1,0 +1,17 @@
+{
+  "name": "MindTrack - Mental Health Tracker",
+  "short_name": "MindTrack",
+  "description": "Clinical-grade mental health tracking PWA for mood, energy, sleep, and diary logging",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#111827",
+  "theme_color": "#111827",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/favicon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}
