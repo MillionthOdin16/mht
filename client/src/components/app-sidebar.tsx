@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { PenSquare, BarChart3, Sparkles, Download, Activity } from "lucide-react";
+import { PenSquare, BarChart3, Sparkles, Download, Activity, Settings } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -36,6 +36,12 @@ const menuItems = [
     url: "/export",
     icon: Download,
     testId: "nav-export",
+  },
+  {
+    title: "Settings",
+    url: "/settings",
+    icon: Settings,
+    testId: "nav-settings",
   },
 ];
 

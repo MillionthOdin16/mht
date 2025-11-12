@@ -10,6 +10,7 @@ import DailyEntry from "@/pages/daily-entry";
 import Analytics from "@/pages/analytics";
 import AISummary from "@/pages/ai-summary";
 import Export from "@/pages/export";
+import Settings from "@/pages/settings";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -19,6 +20,7 @@ function Router() {
       <Route path="/analytics" component={Analytics} />
       <Route path="/ai-summary" component={AISummary} />
       <Route path="/export" component={Export} />
+      <Route path="/settings" component={Settings} />
       <Route component={NotFound} />
     </Switch>
   );

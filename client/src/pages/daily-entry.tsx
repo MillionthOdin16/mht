@@ -79,11 +79,11 @@ export default function DailyEntry() {
   });
 
   const diary = form.watch("diary");
-  const allValues = form.watch();
   
   // Auto-save draft to localStorage every 5 seconds when diary changes
   useEffect(() => {
     const timer = setTimeout(() => {
+      const allValues = form.getValues();
       const draft = {
         ...allValues,
         date: format(allValues.date, "yyyy-MM-dd"),
@@ -92,7 +92,7 @@ export default function DailyEntry() {
       setLastSaved(new Date());
     }, 5000);
     return () => clearTimeout(timer);
-  }, [diary, allValues]);
+  }, [diary, form]);
 
   const createEntryMutation = useMutation({
     mutationFn: async (data: z.infer<typeof formSchema>) => {
@@ -156,6 +156,7 @@ export default function DailyEntry() {
               mode="single"
               selected={form.watch("date")}
               onSelect={(date) => date && form.setValue("date", date)}
+              disabled={(date) => date > new Date()}
               initialFocus
             />
           </PopoverContent>
@@ -193,8 +194,9 @@ export default function DailyEntry() {
                       />
                     </FormControl>
                     <div className="flex justify-between text-xs text-muted-foreground">
-                      <span>Low</span>
-                      <span>High</span>
+                      <span>1 (Dark/Struggling)</span>
+                      <span>5 (Neutral)</span>
+                      <span>10 (Stable/Good)</span>
                     </div>
                   </FormItem>
                 )}
