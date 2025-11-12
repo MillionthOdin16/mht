@@ -1,57 +1,76 @@
-import { Switch, Route } from "wouter";
-import { queryClient } from "./lib/queryClient";
-import { QueryClientProvider } from "@tanstack/react-query";
-import { Toaster } from "@/components/ui/toaster";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/app-sidebar";
-import DailyEntry from "@/pages/daily-entry";
-import Analytics from "@/pages/analytics";
-import AISummary from "@/pages/ai-summary";
-import Export from "@/pages/export";
-import NotFound from "@/pages/not-found";
-
-function Router() {
-  return (
-    <Switch>
-      <Route path="/" component={DailyEntry} />
-      <Route path="/analytics" component={Analytics} />
-      <Route path="/ai-summary" component={AISummary} />
-      <Route path="/export" component={Export} />
-      <Route component={NotFound} />
-    </Switch>
-  );
-}
+import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import Dashboard from "./pages/Dashboard";
+import Analytics from "./pages/Analytics";
+import Export from "./pages/Export";
+import Settings from "./pages/Settings";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 function App() {
-  const style = {
-    "--sidebar-width": "16rem",
-    "--sidebar-width-icon": "3rem",
+  const [showDisclaimer, setShowDisclaimer] = useState(false);
+
+  useEffect(() => {
+    const disclaimerSeen = localStorage.getItem("disclaimerSeen");
+    if (!disclaimerSeen) {
+      setShowDisclaimer(true);
+    }
+  }, []);
+
+  const handleAcceptDisclaimer = () => {
+    localStorage.setItem("disclaimerSeen", "true");
+    setShowDisclaimer(false);
   };
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <SidebarProvider style={style as React.CSSProperties}>
-          <div className="flex h-screen w-full">
-            <AppSidebar />
-            <div className="flex flex-col flex-1 overflow-hidden">
-              <header className="flex items-center justify-between p-4 border-b border-border bg-card">
-                <SidebarTrigger data-testid="button-sidebar-toggle" />
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-chart-2" title="Online" />
-                  <span className="text-xs text-muted-foreground">Synced</span>
-                </div>
-              </header>
-              <main className="flex-1 overflow-y-auto">
-                <Router />
-              </main>
-            </div>
-          </div>
-        </SidebarProvider>
-        <Toaster />
-      </TooltipProvider>
-    </QueryClientProvider>
+    <Router>
+      <div className="min-h-screen bg-background text-foreground">
+        <nav className="bg-card border-b border-border p-4">
+          <ul className="flex space-x-4">
+            <li>
+              <Link to="/">Dashboard</Link>
+            </li>
+            <li>
+              <Link to="/analytics">Analytics</Link>
+            </li>
+            <li>
+              <Link to="/export">Export</Link>
+            </li>
+            <li>
+              <Link to="/settings">Settings</Link>
+            </li>
+          </ul>
+        </nav>
+        <main className="p-4">
+          <Routes>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/analytics" element={<Analytics />} />
+            <Route path="/export" element={<Export />} />
+            <Route path="/settings" element={<Settings />} />
+          </Routes>
+        </main>
+        <AlertDialog open={showDisclaimer} onOpenChange={setShowDisclaimer}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Disclaimer</AlertDialogTitle>
+              <AlertDialogDescription>
+                This tool logs data only. It is not a substitute for professional care. In crisis, contact a hotline or professional immediately.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogAction onClick={handleAcceptDisclaimer}>I Understand</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </div>
+    </Router>
   );
 }
 
