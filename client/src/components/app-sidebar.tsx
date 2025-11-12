@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { PenSquare, BarChart3, Sparkles, Download, Activity, Settings } from "lucide-react";
+import { PenSquare, BarChart3, Sparkles, Download, Activity, Settings, History } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -18,6 +18,12 @@ const menuItems = [
     url: "/",
     icon: PenSquare,
     testId: "nav-daily-entry",
+  },
+  {
+    title: "History",
+    url: "/history",
+    icon: History,
+    testId: "nav-history",
   },
   {
     title: "Analytics",

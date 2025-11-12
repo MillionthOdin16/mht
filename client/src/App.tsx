@@ -7,6 +7,7 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { DisclaimerModal } from "@/components/disclaimer-modal";
 import DailyEntry from "@/pages/daily-entry";
+import History from "@/pages/history";
 import Analytics from "@/pages/analytics";
 import AISummary from "@/pages/ai-summary";
 import Export from "@/pages/export";
@@ -17,6 +18,7 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={DailyEntry} />
+      <Route path="/history" component={History} />
       <Route path="/analytics" component={Analytics} />
       <Route path="/ai-summary" component={AISummary} />
       <Route path="/export" component={Export} />
