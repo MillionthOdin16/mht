@@ -19,12 +19,44 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
+import { MedicationManager } from "@/components/medication-manager";
+import { TagInput } from "@/components/tag-input";
+import { QuickEntry } from "@/components/quick-entry";
 import { insertDailyEntrySchema, type InsertDailyEntry } from "@shared/schema";
 import { cn } from "@/lib/utils";
 
 const formSchema = insertDailyEntrySchema.extend({
   date: z.date(),
 });
+
+// Common mental health-related tag suggestions
+const TAG_SUGGESTIONS = [
+  "anxiety",
+  "depression",
+  "stress",
+  "productive",
+  "therapy",
+  "exercise",
+  "work",
+  "social",
+  "family",
+  "relaxation",
+  "meditation",
+  "insomnia",
+  "fatigue",
+  "overwhelmed",
+  "hopeful",
+  "angry",
+  "lonely",
+  "motivated",
+  "exhausted",
+  "peaceful",
+  "panic",
+  "restless",
+  "focused",
+  "scattered",
+  "irritable",
+];
 
 export default function DailyEntry() {
   const { toast } = useToast();
@@ -34,33 +66,66 @@ export default function DailyEntry() {
   const [activities, setActivities] = useState<Array<{ name: string; duration: number; enjoyment: number; notes: string }>>([]);
   const [triggers, setTriggers] = useState<Array<{ name: string; severity: number; notes: string }>>([]);
 
-  const { data: medications = [] } = useQuery({
+  const { data: medications = [] } = useQuery<Array<{ id: string; name: string; isActive: number }>>({
     queryKey: ["/api/medications"],
   });
 
+  // Try to load draft from localStorage
+  const loadDraft = () => {
+    const draft = localStorage.getItem('mindtrack-draft-entry');
+    if (draft) {
+      try {
+        const parsed = JSON.parse(draft);
+        // Parse the date string back to Date object
+        if (parsed.date) {
+          parsed.date = new Date(parsed.date);
+          // Check if date is valid
+          if (isNaN(parsed.date.getTime())) {
+            parsed.date = new Date();
+          }
+        }
+        return parsed;
+      } catch {
+        // If parse fails, return null
+      }
+    }
+    return null;
+  };
+
+  const defaultValues = loadDraft() || {
+    date: new Date(),
+    mood: 5,
+    energy: 5,
+    sleepHours: 7,
+    sleepQuality: 5,
+    medications: [],
+    siTracking: {
+      present: false,
+    },
+    diary: "",
+    tags: [],
+  };
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      date: new Date(),
-      mood: 5,
-      energy: 5,
-      sleep: 5,
-      medications: [],
-      siTracking: {
-        present: false,
-      },
-      diary: "",
-    },
+    defaultValues,
   });
 
   const diary = form.watch("diary");
   
+  // Auto-save draft to localStorage every 5 seconds when diary changes
   useEffect(() => {
     const timer = setTimeout(() => {
+      const allValues = form.getValues();
+      const draft = {
+        ...allValues,
+        date: format(allValues.date, "yyyy-MM-dd"),
+      };
+      localStorage.setItem('mindtrack-draft-entry', JSON.stringify(draft));
       setLastSaved(new Date());
-    }, 1000);
+    }, 5000);
     return () => clearTimeout(timer);
-  }, [diary]);
+  }, [diary, form]);
 
   const createEntryMutation = useMutation({
     mutationFn: async (data: z.infer<typeof formSchema>) => {
@@ -72,6 +137,8 @@ export default function DailyEntry() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/entries"] });
       setLastSaved(new Date());
+      // Clear draft after successful save
+      localStorage.removeItem('mindtrack-draft-entry');
       toast({
         title: "Entry Saved",
         description: "Your daily entry has been saved successfully.",
@@ -109,31 +176,38 @@ export default function DailyEntry() {
           <h1 className="text-2xl sm:text-3xl font-semibold text-foreground">Daily Entry</h1>
           <p className="text-sm text-muted-foreground mt-1">Track your mental health data</p>
         </div>
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button variant="outline" data-testid="button-date-picker" className="gap-2">
-              <CalendarIcon className="h-4 w-4" />
-              <span className="hidden sm:inline">{format(form.watch("date"), "PPP")}</span>
-              <span className="sm:hidden">{format(form.watch("date"), "PP")}</span>
-            </Button>
-          </PopoverTrigger>
+        <div className="flex items-center gap-2">
+          <QuickEntry />
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" data-testid="button-date-picker" className="gap-2">
+                <CalendarIcon className="h-4 w-4" />
+                <span className="hidden sm:inline">{form.watch("date") ? format(form.watch("date"), "PPP") : "Select date"}</span>
+                <span className="sm:hidden">{form.watch("date") ? format(form.watch("date"), "PP") : "Date"}</span>
+              </Button>
+            </PopoverTrigger>
           <PopoverContent className="w-auto p-0">
             <Calendar
               mode="single"
               selected={form.watch("date")}
               onSelect={(date) => date && form.setValue("date", date)}
+              disabled={(date) => date > new Date()}
               initialFocus
             />
           </PopoverContent>
         </Popover>
+        </div>
       </div>
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <Card>
+          <Card className="gradient-overlay border-border/50 shadow-lg">
             <CardHeader>
-              <CardTitle>Core Metrics</CardTitle>
-              <CardDescription>Rate your mood, energy, and sleep quality (1-10)</CardDescription>
+              <CardTitle className="flex items-center gap-2">
+                <div className="w-2 h-8 bg-gradient-to-b from-primary to-chart-2 rounded-full" />
+                Core Metrics
+              </CardTitle>
+              <CardDescription>Rate your mood, energy, and sleep (1-10 scale, sleep hours 0-24)</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <FormField
@@ -159,8 +233,9 @@ export default function DailyEntry() {
                       />
                     </FormControl>
                     <div className="flex justify-between text-xs text-muted-foreground">
-                      <span>Low</span>
-                      <span>High</span>
+                      <span>1 (Dark/Struggling)</span>
+                      <span>5 (Neutral)</span>
+                      <span>10 (Stable/Good)</span>
                     </div>
                   </FormItem>
                 )}
@@ -198,13 +273,43 @@ export default function DailyEntry() {
 
               <FormField
                 control={form.control}
-                name="sleep"
+                name="sleepHours"
+                render={({ field }) => (
+                  <FormItem>
+                    <div className="flex items-center justify-between">
+                      <FormLabel className="text-base font-medium">Sleep Hours</FormLabel>
+                      <Badge variant="secondary" className="min-w-12 justify-center" data-testid="text-sleep-hours-value">
+                        {field.value ?? 7}h
+                      </Badge>
+                    </div>
+                    <FormControl>
+                      <Slider
+                        min={0}
+                        max={24}
+                        step={0.5}
+                        value={[field.value ?? 7]}
+                        onValueChange={(vals) => field.onChange(vals[0])}
+                        className="min-h-12"
+                        data-testid="slider-sleep-hours"
+                      />
+                    </FormControl>
+                    <div className="flex justify-between text-xs text-muted-foreground">
+                      <span>0h</span>
+                      <span>24h</span>
+                    </div>
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="sleepQuality"
                 render={({ field }) => (
                   <FormItem>
                     <div className="flex items-center justify-between">
                       <FormLabel className="text-base font-medium">Sleep Quality</FormLabel>
-                      <Badge variant="secondary" className="min-w-12 justify-center" data-testid="text-sleep-value">
-                        {field.value}
+                      <Badge variant="secondary" className="min-w-12 justify-center" data-testid="text-sleep-quality-value">
+                        {field.value ?? 5}
                       </Badge>
                     </div>
                     <FormControl>
@@ -212,10 +317,10 @@ export default function DailyEntry() {
                         min={1}
                         max={10}
                         step={1}
-                        value={[field.value]}
+                        value={[field.value ?? 5]}
                         onValueChange={(vals) => field.onChange(vals[0])}
                         className="min-h-12"
-                        data-testid="slider-sleep"
+                        data-testid="slider-sleep-quality"
                       />
                     </FormControl>
                     <div className="flex justify-between text-xs text-muted-foreground">
@@ -228,19 +333,40 @@ export default function DailyEntry() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="gradient-overlay border-border/50 shadow-lg">
             <CardHeader>
-              <CardTitle>Medications</CardTitle>
-              <CardDescription>Select medications taken today</CardDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <div className="w-2 h-8 bg-gradient-to-b from-chart-4 to-chart-5 rounded-full" />
+                    Medications
+                  </CardTitle>
+                  <CardDescription>Select medications taken today</CardDescription>
+                </div>
+                <MedicationManager />
+              </div>
             </CardHeader>
             <CardContent>
-              <FormField
-                control={form.control}
-                name="medications"
-                render={() => (
-                  <FormItem>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                      {medications.map((medication: any) => (
+              {medications.length === 0 ? (
+                <div className="text-center py-8">
+                  <div className="mx-auto w-12 h-12 rounded-full bg-muted flex items-center justify-center mb-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                    </svg>
+                  </div>
+                  <h3 className="font-medium text-sm mb-1">No Medications Added</h3>
+                  <p className="text-xs text-muted-foreground mb-4">
+                    Click "Manage Medications" above to add your medications
+                  </p>
+                </div>
+              ) : (
+                <FormField
+                  control={form.control}
+                  name="medications"
+                  render={() => (
+                    <FormItem>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                      {medications.map((medication) => (
                         <FormField
                           key={medication.id}
                           control={form.control}
@@ -278,16 +404,20 @@ export default function DailyEntry() {
                   </FormItem>
                 )}
               />
+              )}
             </CardContent>
           </Card>
 
           <Collapsible open={siOpen} onOpenChange={setSiOpen}>
-            <Card className="border-destructive/50">
+            <Card className="gradient-overlay border-destructive/50 shadow-lg">
               <CollapsibleTrigger asChild>
                 <CardHeader className="cursor-pointer hover-elevate" data-testid="button-si-toggle">
                   <div className="flex items-center justify-between">
                     <div>
-                      <CardTitle className="text-destructive">Suicidal Ideation Tracking</CardTitle>
+                      <CardTitle className="text-destructive flex items-center gap-2">
+                        <div className="w-2 h-8 bg-gradient-to-b from-destructive to-destructive/60 rounded-full" />
+                        Suicidal Ideation Tracking
+                      </CardTitle>
                       <CardDescription>Optional - Expand to track SI-related thoughts</CardDescription>
                     </div>
                     <Badge variant="destructive" className="no-default-hover-elevate">
@@ -327,7 +457,7 @@ export default function DailyEntry() {
                             <div className="flex items-center justify-between">
                               <FormLabel className="text-base font-medium">Intensity</FormLabel>
                               <Badge variant="destructive" className="min-w-12 justify-center" data-testid="text-si-intensity">
-                                {field.value || 1}
+                                {(field.value as number | undefined) || 1}
                               </Badge>
                             </div>
                             <FormControl>
@@ -335,7 +465,7 @@ export default function DailyEntry() {
                                 min={1}
                                 max={10}
                                 step={1}
-                                value={[field.value || 1]}
+                                value={[(field.value as number | undefined) || 1]}
                                 onValueChange={(vals) => field.onChange(vals[0])}
                                 className="min-h-12"
                                 data-testid="slider-si-intensity"
@@ -360,6 +490,7 @@ export default function DailyEntry() {
                                 placeholder="Describe the thoughts or context..."
                                 className="min-h-24"
                                 {...field}
+                                value={(field.value as string | undefined) || ""}
                                 data-testid="textarea-si-thoughts"
                               />
                             </FormControl>
@@ -373,15 +504,19 @@ export default function DailyEntry() {
             </Card>
           </Collapsible>
 
-          <Card>
+          <Card className="gradient-overlay border-border/50 shadow-lg">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle>Diary Entry</CardTitle>
+                  <CardTitle className="flex items-center gap-2">
+                    <div className="w-2 h-8 bg-gradient-to-b from-chart-3 to-chart-1 rounded-full" />
+                    Diary Entry
+                  </CardTitle>
                   <CardDescription>Free-form journaling</CardDescription>
                 </div>
                 {lastSaved && (
                   <Badge variant="outline" className="text-xs" data-testid="text-autosave-indicator">
+                    <span className="inline-block w-1.5 h-1.5 rounded-full bg-chart-2 mr-1.5 animate-pulse" />
                     Saved {format(lastSaved, "p")}
                   </Badge>
                 )}
@@ -398,6 +533,7 @@ export default function DailyEntry() {
                         placeholder="How was your day? What happened? How are you feeling?"
                         className="min-h-32"
                         {...field}
+                        value={field.value || ""}
                         data-testid="textarea-diary"
                       />
                     </FormControl>
@@ -409,17 +545,45 @@ export default function DailyEntry() {
                   </FormItem>
                 )}
               />
+              
+              <Separator className="my-4" />
+              
+              <FormField
+                control={form.control}
+                name="tags"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-base font-medium">Tags</FormLabel>
+                    <p className="text-sm text-muted-foreground mb-2">
+                      Add tags to categorize and search your entries easily
+                    </p>
+                    <FormControl>
+                      <TagInput
+                        tags={field.value ? [...field.value] : []}
+                        onChange={field.onChange}
+                        placeholder="Type and press Enter..."
+                        suggestions={TAG_SUGGESTIONS}
+                        maxTags={8}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="gradient-overlay border-border/50 shadow-lg">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle>Social Interactions</CardTitle>
+                  <CardTitle className="flex items-center gap-2">
+                    <div className="w-2 h-8 bg-gradient-to-b from-chart-2 to-chart-1 rounded-full" />
+                    Social Interactions
+                  </CardTitle>
                   <CardDescription>Track social contacts and their quality</CardDescription>
                 </div>
-                <Button type="button" size="sm" onClick={addSocialInteraction} data-testid="button-add-social">
+                <Button type="button" size="sm" onClick={addSocialInteraction} data-testid="button-add-social" className="glow-on-hover">
                   <Plus className="h-4 w-4 mr-2" />
                   Add
                 </Button>
@@ -459,14 +623,17 @@ export default function DailyEntry() {
             )}
           </Card>
 
-          <Card>
+          <Card className="gradient-overlay border-border/50 shadow-lg">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle>Activities</CardTitle>
+                  <CardTitle className="flex items-center gap-2">
+                    <div className="w-2 h-8 bg-gradient-to-b from-chart-4 to-chart-3 rounded-full" />
+                    Activities
+                  </CardTitle>
                   <CardDescription>Log activities and enjoyment levels</CardDescription>
                 </div>
-                <Button type="button" size="sm" onClick={addActivity} data-testid="button-add-activity">
+                <Button type="button" size="sm" onClick={addActivity} data-testid="button-add-activity" className="glow-on-hover">
                   <Plus className="h-4 w-4 mr-2" />
                   Add
                 </Button>
@@ -512,14 +679,17 @@ export default function DailyEntry() {
             )}
           </Card>
 
-          <Card>
+          <Card className="gradient-overlay border-border/50 shadow-lg">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle>Triggers</CardTitle>
+                  <CardTitle className="flex items-center gap-2">
+                    <div className="w-2 h-8 bg-gradient-to-b from-destructive/80 to-chart-4 rounded-full" />
+                    Triggers
+                  </CardTitle>
                   <CardDescription>Document triggers and their severity</CardDescription>
                 </div>
-                <Button type="button" size="sm" onClick={addTrigger} data-testid="button-add-trigger">
+                <Button type="button" size="sm" onClick={addTrigger} data-testid="button-add-trigger" className="glow-on-hover">
                   <Plus className="h-4 w-4 mr-2" />
                   Add
                 </Button>
@@ -563,7 +733,7 @@ export default function DailyEntry() {
             <Button
               type="submit"
               size="lg"
-              className="gap-2 shadow-lg"
+              className="gap-2 shadow-xl glow-on-hover bg-gradient-to-r from-primary to-chart-1 hover:from-primary/90 hover:to-chart-1/90 transition-all"
               disabled={createEntryMutation.isPending}
               data-testid="button-save-entry"
             >

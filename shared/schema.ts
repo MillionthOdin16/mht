@@ -9,14 +9,16 @@ export const dailyEntries = pgTable("daily_entries", {
   date: date("date").notNull(),
   mood: integer("mood").notNull(), // 1-10 scale
   energy: integer("energy").notNull(), // 1-10 scale
-  sleep: integer("sleep").notNull(), // 1-10 scale
-  medications: jsonb("medications").$type<string[]>().default(sql`'[]'`), // Array of medication names
+  sleepHours: integer("sleep_hours").notNull().default(7), // 0-24 hours
+  sleepQuality: integer("sleep_quality").notNull().default(5), // 1-10 scale
+  medications: jsonb("medications").$type<string[]>().notNull().default(sql`'[]'`), // Array of medication names
   siTracking: jsonb("si_tracking").$type<{
     present: boolean;
     intensity?: number;
     thoughts?: string;
-  }>(),
-  diary: text("diary").default(""),
+  }>().notNull().default(sql`'{"present":false}'`),
+  diary: text("diary").notNull().default(""),
+  tags: jsonb("tags").$type<string[]>().notNull().default(sql`'[]'`), // Tags for categorization
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -27,7 +29,7 @@ export const socialInteractions = pgTable("social_interactions", {
   entryId: varchar("entry_id").references(() => dailyEntries.id, { onDelete: "cascade" }).notNull(),
   type: text("type").notNull(), // e.g., "friend", "family", "colleague"
   quality: integer("quality").notNull(), // 1-10 scale
-  notes: text("notes"),
+  notes: text("notes").notNull().default(""),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -36,9 +38,9 @@ export const activities = pgTable("activities", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   entryId: varchar("entry_id").references(() => dailyEntries.id, { onDelete: "cascade" }).notNull(),
   name: text("name").notNull(),
-  duration: integer("duration"), // in minutes
-  enjoyment: integer("enjoyment"), // 1-10 scale
-  notes: text("notes"),
+  duration: integer("duration").notNull().default(0), // in minutes
+  enjoyment: integer("enjoyment").notNull().default(5), // 1-10 scale
+  notes: text("notes").notNull().default(""),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -48,7 +50,7 @@ export const triggers = pgTable("triggers", {
   entryId: varchar("entry_id").references(() => dailyEntries.id, { onDelete: "cascade" }).notNull(),
   name: text("name").notNull(),
   severity: integer("severity").notNull(), // 1-10 scale
-  notes: text("notes"),
+  notes: text("notes").notNull().default(""),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -56,7 +58,7 @@ export const triggers = pgTable("triggers", {
 export const medications = pgTable("medications", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   name: text("name").notNull().unique(),
-  isActive: integer("is_active").default(1).notNull(), // 0 or 1
+  isActive: integer("is_active").notNull().default(1), // 0 or 1
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
