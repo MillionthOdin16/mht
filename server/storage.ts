@@ -127,6 +127,13 @@ export class MemStorage implements IStorage {
     const entry: DailyEntry = {
       ...insertEntry,
       id,
+      medications: (insertEntry.medications || []) as string[],
+      siTracking: (insertEntry.siTracking || { present: false }) as {
+        present: boolean;
+        intensity?: number;
+        thoughts?: string;
+      },
+      diary: insertEntry.diary || "",
       createdAt: now,
       updatedAt: now,
     };
@@ -141,6 +148,13 @@ export class MemStorage implements IStorage {
     const updated: DailyEntry = {
       ...entry,
       ...updates,
+      medications: (updates.medications !== undefined ? updates.medications : entry.medications) as string[],
+      siTracking: (updates.siTracking !== undefined ? updates.siTracking : entry.siTracking) as {
+        present: boolean;
+        intensity?: number;
+        thoughts?: string;
+      },
+      diary: updates.diary !== undefined ? updates.diary : entry.diary,
       updatedAt: new Date(),
     };
     this.dailyEntries.set(id, updated);
@@ -178,6 +192,7 @@ export class MemStorage implements IStorage {
     const interaction: SocialInteraction = {
       ...insertInteraction,
       id,
+      notes: insertInteraction.notes || "",
       createdAt: new Date(),
     };
     this.socialInteractions.set(id, interaction);
@@ -199,6 +214,9 @@ export class MemStorage implements IStorage {
     const activity: Activity = {
       ...insertActivity,
       id,
+      duration: insertActivity.duration || 0,
+      enjoyment: insertActivity.enjoyment || 5,
+      notes: insertActivity.notes || "",
       createdAt: new Date(),
     };
     this.activities.set(id, activity);
@@ -220,6 +238,7 @@ export class MemStorage implements IStorage {
     const trigger: Trigger = {
       ...insertTrigger,
       id,
+      notes: insertTrigger.notes || "",
       createdAt: new Date(),
     };
     this.triggers.set(id, trigger);
@@ -239,6 +258,7 @@ export class MemStorage implements IStorage {
     const medication: Medication = {
       ...insertMedication,
       id,
+      isActive: insertMedication.isActive !== undefined ? insertMedication.isActive : 1,
       createdAt: new Date(),
     };
     this.medications.set(id, medication);

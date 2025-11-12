@@ -34,7 +34,7 @@ export default function DailyEntry() {
   const [activities, setActivities] = useState<Array<{ name: string; duration: number; enjoyment: number; notes: string }>>([]);
   const [triggers, setTriggers] = useState<Array<{ name: string; severity: number; notes: string }>>([]);
 
-  const { data: medications = [] } = useQuery({
+  const { data: medications = [] } = useQuery<Array<{ id: string; name: string; isActive: number }>>({
     queryKey: ["/api/medications"],
   });
 
@@ -240,7 +240,7 @@ export default function DailyEntry() {
                 render={() => (
                   <FormItem>
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                      {medications.map((medication: any) => (
+                      {medications.map((medication) => (
                         <FormField
                           key={medication.id}
                           control={form.control}
@@ -327,7 +327,7 @@ export default function DailyEntry() {
                             <div className="flex items-center justify-between">
                               <FormLabel className="text-base font-medium">Intensity</FormLabel>
                               <Badge variant="destructive" className="min-w-12 justify-center" data-testid="text-si-intensity">
-                                {field.value || 1}
+                                {(field.value as number | undefined) || 1}
                               </Badge>
                             </div>
                             <FormControl>
@@ -335,7 +335,7 @@ export default function DailyEntry() {
                                 min={1}
                                 max={10}
                                 step={1}
-                                value={[field.value || 1]}
+                                value={[(field.value as number | undefined) || 1]}
                                 onValueChange={(vals) => field.onChange(vals[0])}
                                 className="min-h-12"
                                 data-testid="slider-si-intensity"
@@ -360,6 +360,7 @@ export default function DailyEntry() {
                                 placeholder="Describe the thoughts or context..."
                                 className="min-h-24"
                                 {...field}
+                                value={(field.value as string | undefined) || ""}
                                 data-testid="textarea-si-thoughts"
                               />
                             </FormControl>
@@ -398,6 +399,7 @@ export default function DailyEntry() {
                         placeholder="How was your day? What happened? How are you feeling?"
                         className="min-h-32"
                         {...field}
+                        value={field.value || ""}
                         data-testid="textarea-diary"
                       />
                     </FormControl>
