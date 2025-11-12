@@ -89,6 +89,7 @@ export class MemStorage implements IStorage {
         medications: ["Bupropion 300mg", "Venlafaxine 225mg"],
         siTracking: { present: true, intensity: 4, thoughts: "Felt worthless again today" },
         diary: "Struggled to get out of bed. Work felt overwhelming. Thoughts were dark.",
+        tags: ["depression", "work", "overwhelmed"],
       },
       {
         date: format(new Date(today.getTime() - 5 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd'),
@@ -99,6 +100,7 @@ export class MemStorage implements IStorage {
         medications: ["Bupropion 300mg", "Venlafaxine 225mg", "Adderall 30mg XR"],
         siTracking: { present: false },
         diary: "Slightly better day. Medication compliance improved. Had a good conversation with a friend.",
+        tags: ["social", "therapy"],
       },
       {
         date: format(new Date(today.getTime() - 4 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd'),
@@ -109,6 +111,7 @@ export class MemStorage implements IStorage {
         medications: ["Bupropion 300mg", "Venlafaxine 225mg", "Adderall 30mg XR"],
         siTracking: { present: false },
         diary: "Mood is stabilizing. Exercise helped today. Finished some work tasks.",
+        tags: ["exercise", "productive", "work"],
       },
       {
         date: format(new Date(today.getTime() - 3 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd'),
@@ -119,6 +122,7 @@ export class MemStorage implements IStorage {
         medications: ["Bupropion 300mg", "Venlafaxine 225mg", "Adderall 30mg XR"],
         siTracking: { present: false },
         diary: "Good day overall. Productive at work. Social interaction felt natural.",
+        tags: ["productive", "social", "work"],
       },
       {
         date: format(new Date(today.getTime() - 2 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd'),
@@ -129,6 +133,7 @@ export class MemStorage implements IStorage {
         medications: ["Bupropion 300mg", "Venlafaxine 225mg", "Adderall 30mg XR"],
         siTracking: { present: false },
         diary: "Best day this week. Feeling hopeful. Engaged in hobbies.",
+        tags: ["hopeful", "relaxation"],
       },
       {
         date: format(new Date(today.getTime() - 1 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd'),
@@ -139,6 +144,7 @@ export class MemStorage implements IStorage {
         medications: ["Bupropion 300mg", "Venlafaxine 225mg"],
         siTracking: { present: false },
         diary: "Moderate day. Some anxiety about upcoming week but manageable.",
+        tags: ["anxiety", "work"],
       },
       {
         date: format(today, 'yyyy-MM-dd'),
@@ -149,6 +155,7 @@ export class MemStorage implements IStorage {
         medications: ["Bupropion 300mg", "Venlafaxine 225mg", "Adderall 30mg XR"],
         siTracking: { present: false },
         diary: "Started tracking consistently. Noticing patterns in my mood.",
+        tags: ["motivated", "focused"],
       },
     ];
 
@@ -160,6 +167,7 @@ export class MemStorage implements IStorage {
         id,
         medications: entry.medications as string[],
         siTracking: entry.siTracking as { present: boolean; intensity?: number; thoughts?: string },
+        tags: entry.tags as string[],
         createdAt: now,
         updatedAt: now,
       });
@@ -233,6 +241,7 @@ export class MemStorage implements IStorage {
         thoughts?: string;
       },
       diary: insertEntry.diary || "",
+      tags: (insertEntry.tags || []) as string[],
       createdAt: now,
       updatedAt: now,
     };
@@ -254,6 +263,7 @@ export class MemStorage implements IStorage {
         thoughts?: string;
       },
       diary: updates.diary !== undefined ? updates.diary : entry.diary,
+      tags: (updates.tags !== undefined ? updates.tags : entry.tags) as string[],
       updatedAt: new Date(),
     };
     this.dailyEntries.set(id, updated);
