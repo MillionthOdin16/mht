@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { PenSquare, BarChart3, Sparkles, Download, Activity, Settings, History } from "lucide-react";
+import { PenSquare, BarChart3, Sparkles, Download, Activity, Settings, History, Brain } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -36,6 +36,12 @@ const menuItems = [
     url: "/ai-summary",
     icon: Sparkles,
     testId: "nav-ai-summary",
+  },
+  {
+    title: "AI Insights",
+    url: "/ai-insights",
+    icon: Brain,
+    testId: "nav-ai-insights",
   },
   {
     title: "Export Data",

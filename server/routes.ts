@@ -3,6 +3,7 @@ import express from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { generateClinicalSummary } from "./gemini";
+import { generateAIInsights, answerDataQuestion } from "./ai-insights";
 import {
   insertDailyEntrySchema,
   insertSocialInteractionSchema,
@@ -271,6 +272,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error generating AI summary:", error);
       res.status(500).json({ error: "Failed to generate AI summary" });
+    }
+  });
+
+  // AI Insights - Pattern Detection
+  app.post("/api/ai/insights", async (req, res) => {
+    try {
+      const { type, entries } = req.body;
+      
+      if (!entries || entries.length === 0) {
+        return res.status(400).json({ error: "No entries provided" });
+      }
+      
+      // Generate insights based on type
+      const insights = await generateAIInsights(entries, type);
+      res.json({ insights });
+    } catch (error) {
+      console.error("Error generating AI insights:", error);
+      res.status(500).json({ error: "Failed to generate insights" });
+    }
+  });
+
+  // AI Insights - Natural Language Questions
+  app.post("/api/ai/ask", async (req, res) => {
+    try {
+      const { question, entries } = req.body;
+      
+      if (!question || !entries) {
+        return res.status(400).json({ error: "Question and entries are required" });
+      }
+      
+      const answer = await answerDataQuestion(entries, question);
+      res.json({ answer });
+    } catch (error) {
+      console.error("Error answering question:", error);
+      res.status(500).json({ error: "Failed to answer question" });
     }
   });
 
